@@ -1,4 +1,3 @@
 out/
-main
-*.o
-*.hi
+dist/
+*.nix
