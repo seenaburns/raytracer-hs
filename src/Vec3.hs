@@ -1,15 +1,10 @@
 module Vec3 where
 
-data Vec3 = Vec3 Float Float Float deriving (Show, Eq)
-
-x :: Vec3 -> Float
-x (Vec3 x _ _ ) = x
-
-y :: Vec3 -> Float
-y (Vec3 _ y _) = y
-
-z :: Vec3 -> Float
-z (Vec3 _ _ z) = z
+data Vec3 = Vec3 {
+  x :: Float,
+  y :: Float,
+  z :: Float
+} deriving (Show, Eq)
 
 map :: (Float -> Float) -> Vec3 -> Vec3
 map f (Vec3 x y z) = Vec3 (f x) (f y) (f z)
