@@ -1,6 +1,8 @@
-import Vec3 (Vec3)
-import qualified Vec3
+import Vec3
+import Vec3 (Vec3(Vec3))
 import qualified IO
+import Ray
+import Ray (Ray(Ray))
 
 nx = 200
 ny = 100
@@ -10,14 +12,26 @@ main = putStr $ IO.bufToPPM nx ny (testScene nx ny)
 
 -- Test Scene
 testScene :: Int -> Int -> [Vec3]
-testScene x y = testScene' x y 0 y
+testScene width height =
+  let
+    -- Define origin and picture plane from corner, width and height
+    lowerleftcorner = Vec3 (-2) (-1) (-1)
+    horizontal      = Vec3 4 0 0
+    vertical        = Vec3 0 2 0
+    origin          = Vec3 0 0 0
+    in
+    do
+      j <- (reverse [0..height-1])
+      i <- ([0..width-1])
+      let
+        u = (fromIntegral i) / (fromIntegral width)
+        v = (fromIntegral j) / (fromIntegral height)
+        r = Ray origin (lowerleftcorner `addV` (horizontal `mul` u) `addV` (vertical `mul` v))
+        in return $ color r
 
-testScene' :: Int -> Int -> Int -> Int -> [Vec3]
-testScene' x y i j
-  | j < 0     = []
-  | i >= x    = testScene' x y 0 (j-1)
-  | otherwise =
-    let r = (fromIntegral i) / (fromIntegral x)
-        g = (fromIntegral j) / (fromIntegral y)
-        b = 0.2
-    in [Vec3.Vec3 r g b] ++ (testScene' x y (i+1) j)
+color :: Ray -> Vec3
+color r =
+  let
+    unitDir = (normalized (dir r))
+    t = 0.5 * ((y unitDir) + 1.0)
+  in ((Vec3 1 1 1) `mul` (1.0-t)) `addV` ((Vec3 0.5 0.7  1.0) `mul` t)
