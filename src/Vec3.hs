@@ -1,9 +1,9 @@
 module Vec3 where
 
 data Vec3 = Vec3 {
-  x :: Float,
-  y :: Float,
-  z :: Float
+  x :: !Float,
+  y :: !Float,
+  z :: !Float
 } deriving (Show, Eq)
 
 map :: (Float -> Float) -> Vec3 -> Vec3
