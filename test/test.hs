@@ -1,13 +1,5 @@
--- module Main where
---
--- import System.Exit (exitFailure)
---
--- main = do
---     putStrLn "This test always fails!"
---     exitFailure
---
-
 import Vec3
+import Ray
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
@@ -27,10 +19,13 @@ suite :: TestTree
 suite = testGroup "Test Suite" [
     testGroup "Units"
       [
-        testCase "toList" $ Vec3.toList (Vec3 1 2 3) @=? [1,2,3],
-        testCase "dot"    $ Vec3.dot (Vec3 1 2 3) (Vec3 4 5 6) @=? 32,
-        testCase "dot"    $ Vec3.dot (Vec3 1 0 0) (Vec3 0 1 0) @=? 0,
-        testCase "cross"  $ Vec3.cross (Vec3 1 2 3) (Vec3 4 5 6) @=? (Vec3 (-3) 6 (-3))
+        -- Vec3
+        testCase "Vec3 toList" $ Vec3.toList (Vec3 1 2 3) @=? [1,2,3],
+        testCase "Vec3 dot"    $ Vec3.dot (Vec3 1 2 3) (Vec3 4 5 6) @=? 32,
+        testCase "Vec3 dot"    $ Vec3.dot (Vec3 1 0 0) (Vec3 0 1 0) @=? 0,
+        testCase "Vec3 cross"  $ Vec3.cross (Vec3 1 2 3) (Vec3 4 5 6) @=? (Vec3 (-3) 6 (-3)),
+        -- Ray
+        testCase "Ray pointAtParameter" $ pointAtParameter (Ray (Vec3 1 1 1) (Vec3 1 2 3)) 2 @=? (Vec3 3 5 7)
       ],
 
     testGroup "QuickCheck tests"
