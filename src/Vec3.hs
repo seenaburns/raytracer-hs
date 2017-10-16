@@ -41,6 +41,9 @@ normalized :: Vec3 -> Vec3
 normalized v = let len = (Vec3.length v)
                in Vec3.map (\x -> x / len) v
 
+lerp :: Vec3 -> Vec3 -> Float -> Vec3
+lerp v1 v2 t = (v1 `mul` t) `addV` (v2 `mul` (1.0-t))
+
 -- Vec and Float math
 add :: Vec3 -> Float -> Vec3
 add v f = Vec3.map (\x -> x + f) v
