@@ -1,5 +1,6 @@
 module Ray where
 
+import Vec3
 import Vec3 (Vec3)
 import qualified Vec3
 
@@ -11,4 +12,4 @@ data Ray = Ray {
 
 -- Return position at t from A + t*B
 pointAtParameter :: Ray -> Float -> Vec3
-pointAtParameter r t = (origin r) `Vec3.addV` ((dir r) `Vec3.mul` t)
+pointAtParameter r t = (origin r) + ((dir r) *: t)

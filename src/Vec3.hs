@@ -1,71 +1,79 @@
 module Vec3 where
 
-data Vec3 = Vec3 {
-  x :: !Float,
-  y :: !Float,
-  z :: !Float
+import Data.Functor
+import Control.Applicative
+
+data Vec3Generic a = Vec3Generic {
+  x :: !a,
+  y :: !a,
+  z :: !a
 } deriving (Show, Eq)
 
-map :: (Float -> Float) -> Vec3 -> Vec3
-map f (Vec3 x y z) = Vec3 (f x) (f y) (f z)
+type Vec3 = Vec3Generic Float
+vec3 :: Float -> Float -> Float -> Vec3
+vec3 x y z = Vec3Generic x y z
 
-map2 :: (Float -> Float -> Float) -> Vec3 -> Vec3 -> Vec3
-map2 f (Vec3 x1 y1 z1) (Vec3 x2 y2 z2) = Vec3 (f x1 x2) (f y1 y2) (f z1 z2)
+instance Functor Vec3Generic where
+  fmap f (Vec3Generic x y z) = Vec3Generic (f x) (f y) (f z)
 
-toList :: Vec3 -> [Float]
-toList (Vec3 x y z) = [x, y, z]
+instance Applicative Vec3Generic where
+  pure a = Vec3Generic a a a
+  (Vec3Generic fx fy fz) <*> (Vec3Generic x y z) = Vec3Generic (fx x) (fy y) (fz z)
+
+toList :: Vec3Generic a -> [a]
+toList (Vec3Generic x y z) = [x, y, z]
 
 -- Reduce applies function f like ((x f y) f z)
-reduce :: (Float -> Float -> Float) -> Vec3 -> Float
-reduce f (Vec3 x y z) = ((x `f` y) `f` z)
+reduce :: (a -> a -> a) -> Vec3Generic a -> a
+reduce f (Vec3Generic x y z) = ((x `f` y) `f` z)
 
 -- Vec Math
-dot :: Vec3 -> Vec3 -> Float
-dot a b = Vec3.reduce (+) (Vec3.mulV a b)
+dot :: (Num a) => Vec3Generic a -> Vec3Generic a -> a
+dot a b = reduce (+) (a * b)
 
-cross :: Vec3 -> Vec3 -> Vec3
-cross (Vec3 ax ay az) (Vec3 bx by bz) =
+cross :: (Num a) => Vec3Generic a -> Vec3Generic a -> Vec3Generic a
+cross (Vec3Generic ax ay az) (Vec3Generic bx by bz) =
   let x = ay*bz - az*by
       y = - (ax*bz - az*bx)
       z = ax*by - ay*bx
-  in Vec3 x y z
+  in Vec3Generic x y z
 
-length :: Vec3 -> Float
+length :: (Floating a) => Vec3Generic a -> a
 length v = sqrt (squaredLength v)
 
 -- Squared length = x*x + y*y + z*z
-squaredLength :: Vec3 -> Float
-squaredLength v = Vec3.reduce (+) (Vec3.map (\x -> x * x) v)
+squaredLength :: (Num a) => Vec3Generic a -> a
+squaredLength v = reduce (+) (fmap (\x -> x * x) v)
 
-normalized :: Vec3 -> Vec3
-normalized v = let len = (Vec3.length v)
-               in Vec3.map (\x -> x / len) v
+normalized :: (Floating a) => Vec3Generic a -> Vec3Generic a
+normalized v = let len = Vec3.length v
+               in fmap (\x -> x / len) v
 
-lerp :: Vec3 -> Vec3 -> Float -> Vec3
-lerp v1 v2 t = (v1 `mul` t) `addV` (v2 `mul` (1.0-t))
-
--- Vec and Float math
-add :: Vec3 -> Float -> Vec3
-add v f = Vec3.map (\x -> x + f) v
-
-sub :: Vec3 -> Float -> Vec3
-sub v f = Vec3.map (\x -> x - f) v
-
-mul :: Vec3 -> Float -> Vec3
-mul v f = Vec3.map (\x -> x * f) v
-
-div :: Vec3 -> Float -> Vec3
-div v f = Vec3.map (\x -> x / f) v
+lerp :: (Fractional a) => Vec3Generic a -> Vec3Generic a -> a -> Vec3Generic a
+lerp v1 v2 t = (v1 *: t) + (v2 *: (1.0-t))
 
 -- Vec and Vec Math
-addV :: Vec3 -> Vec3 -> Vec3
-addV a b = Vec3.map2 (\aa bb -> aa + bb) a b
+instance (Num a) => Num (Vec3Generic a) where
+  negate = fmap negate
+  (+) = liftA2 (+)
+  (*) = liftA2 (*)
+  abs = fmap abs
+  signum = fmap signum
+  fromInteger = pure . fromInteger
 
-subV :: Vec3 -> Vec3 -> Vec3
-subV a b = Vec3.map2 (\aa bb -> aa - bb) a b
+instance (Fractional a) => Fractional (Vec3Generic a) where
+  (/) = liftA2 (/)
+  fromRational = pure . fromRational
 
-mulV :: Vec3 -> Vec3 -> Vec3
-mulV a b = Vec3.map2 (\aa bb -> aa * bb) a b
+-- Vec and scalar math, _: to indicate scalar
+(+:) :: (Num a) => Vec3Generic a -> a -> Vec3Generic a
+(+:) v f = fmap (\x -> x + f) v
 
-divV :: Vec3 -> Vec3 -> Vec3
-divV a b = Vec3.map2 (\aa bb -> aa / bb) a b
+(-:) :: (Num a) => Vec3Generic a -> a -> Vec3Generic a
+(-:) v f = fmap (\x -> x - f) v
+
+(*:) :: (Num a) => Vec3Generic a -> a -> Vec3Generic a
+(*:) v f = fmap (\x -> x * f) v
+
+(/:) :: (Fractional a) => Vec3Generic a -> a -> Vec3Generic a
+(/:) v f = fmap (\x -> x / f) v
