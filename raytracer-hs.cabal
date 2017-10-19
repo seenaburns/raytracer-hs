@@ -17,6 +17,7 @@ Test-Suite test
   hs-source-dirs:      test, src
   type:                exitcode-stdio-1.0
   build-depends:       base,
+                       QuickCheck,
                        tasty,
                        tasty-hunit,
                        tasty-quickcheck

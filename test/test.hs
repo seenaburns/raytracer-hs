@@ -3,6 +3,7 @@ import Ray
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
+import Test.QuickCheck.Function
 import Control.Applicative
 
 instance (Arbitrary a) => Arbitrary (Vec3Generic a) where
@@ -36,6 +37,27 @@ propNormalized v =
   where
     a = normalized v
     b = v /: (Vec3.length v)
+propVec3ApplicativeIdentity :: Vec3 -> Bool
+propVec3ApplicativeIdentity v = (pure id <*> v) == v
+propVec3ApplicativeHomomorphism :: Int -> Fun Int Int -> Bool
+propVec3ApplicativeHomomorphism x f = a == b
+  where
+    ff = apply f
+    a = pure ff <*> pure x :: Vec3Generic Int
+    b = pure (ff x) :: Vec3Generic Int
+propVec3ApplicativeComposition :: Fun Int Int -> Fun Int Int -> Vec3Generic Int -> Bool
+propVec3ApplicativeComposition u v x = a == b
+  where
+    uu = pure (apply u)
+    vv = pure (apply v)
+    a = pure (.) <*> uu <*> vv <*> x
+    b = uu <*> (vv <*> x)
+propVec3ApplicativeInterchange :: Fun Int Int -> Int -> Bool
+propVec3ApplicativeInterchange f x = a == b
+  where
+    ff = pure (apply f)
+    a = ff <*> pure x :: Vec3Generic Int
+    b = pure ($ x) <*> ff :: Vec3Generic Int
 
 suite :: TestTree
 suite = testGroup "Test Suite" [
@@ -54,7 +76,11 @@ suite = testGroup "Test Suite" [
       [
         testProperty "Quickcheck Vec3 squaredLength" propSquaredLength,
         testProperty "Quickcheck Vec3 length" propLength,
-        testProperty "Quickcheck Vec3 normalized" propNormalized
+        testProperty "Quickcheck Vec3 normalized" propNormalized,
+        testProperty "Quickcheck Vec3 applicative identity" propVec3ApplicativeIdentity,
+        testProperty "Quickcheck Vec3 applicative composition" propVec3ApplicativeComposition,
+        testProperty "Quickcheck Vec3 applicative homomorphism" propVec3ApplicativeHomomorphism,
+        testProperty "Quickcheck Vec3 applicative interchange" propVec3ApplicativeInterchange
       ]
   ]
 
