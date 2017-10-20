@@ -1,3 +1,10 @@
+-- Vec3 defines a 3 dimensional vector for uses like positions, ray directions, colors
+-- The module defines
+--  - an Applicative typeclass for a generic Vec3Generic
+--  - a Num and Fractional instance for infix operators for two Vec3s
+--  - Vec3 and scalar operators defined like +:, -:, *:, /:
+--  - other common vector operators like normalized
+
 module Vec3 where
 
 import Data.Functor
