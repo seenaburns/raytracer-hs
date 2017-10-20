@@ -1,10 +1,14 @@
 import Vec3
+import Vec3 (Vec3)
 import qualified IO
 import Ray
 import Ray (Ray(Ray))
+import Model
 
 nx = 200
 ny = 100
+tmin = 0.00001
+tmax = 1000
 
 main :: IO ()
 main = putStr $ IO.bufToPPM nx ny (testScene nx ny)
@@ -26,9 +30,15 @@ testScene width height =
     vertical        = vec3 0 2 0
     origin          = vec3 0 0 0
 
--- Blend between two colors with the y component of the given ray
 color :: Ray -> Vec3
 color r =
+  if (hitSphere (vec3 0 0 (-1)) 0.5 r tmin tmax)
+    then (vec3 1 0 0)
+    else backgroundColor r
+
+-- Blend between two colors with the y component of the given ray
+backgroundColor :: Ray -> Vec3
+backgroundColor r =
   lerp (vec3 0.5 0.7 1.0) (vec3 1 1 1) t
   where
     unitDir = (normalized (dir r))
