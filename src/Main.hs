@@ -32,7 +32,7 @@ testScene width height =
 
 color :: Ray -> Vec3
 color r =
-  if (hitSphere (vec3 0 0 (-1)) 0.5 r tmin tmax)
+  if (hit (sphere (vec3 0 0 (-1)) 0.5) r tmin tmax)
     then (vec3 1 0 0)
     else backgroundColor r
 

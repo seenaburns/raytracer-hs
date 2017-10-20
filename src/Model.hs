@@ -11,15 +11,21 @@ data HitRecord = HitRecord {
   normal :: Vec3
 }
 
-type Hitable = Ray -> Float -> Float -> Bool
+type Hitable = (Ray -> Float -> Float -> Bool)
 
-hitSphere :: Vec3 -> Float -> Hitable
-hitSphere center radius ray tmin tmax =
-  discriminant > 0
-  where
-    oc = (origin ray) - center
-    rdir = dir ray
-    a = dot rdir rdir
-    b = 2.0 * (dot oc rdir)
-    c = (dot oc oc) - radius * radius
-    discriminant = b*b - 4*a*c
+hit :: Hitable -> Ray -> Float -> Float -> Bool
+hit hitable ray tmin tmax = hitable ray tmin tmax
+
+sphere :: Vec3 -> Float -> Hitable
+sphere center radius =
+  (\ray tmin tmax ->
+    let
+      oc = (origin ray) - center
+      rdir = dir ray
+      a = dot rdir rdir
+      b = 2.0 * (dot oc rdir)
+      c = (dot oc oc) - radius * radius
+      discriminant = b*b - 4*a*c
+    in
+      discriminant > 0
+  )
