@@ -5,6 +5,8 @@ import Ray
 import Ray (Ray(Ray))
 import Model
 
+import Data.Maybe
+
 nx = 200
 ny = 100
 tmin = 0.00001
@@ -32,9 +34,11 @@ testScene width height =
 
 color :: Ray -> Vec3
 color r =
-  if (hit (sphere (vec3 0 0 (-1)) 0.5) r tmin tmax)
-    then (vec3 1 0 0)
-    else backgroundColor r
+  case hr of
+    Just h  -> ((normal h) +: 1) *: 0.5
+    Nothing -> backgroundColor r
+  where
+    hr = hit (sphere (vec3 0 0 (-1)) 0.5) r tmin tmax
 
 -- Blend between two colors with the y component of the given ray
 backgroundColor :: Ray -> Vec3
