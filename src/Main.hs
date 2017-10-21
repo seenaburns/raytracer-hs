@@ -38,7 +38,10 @@ color r =
     Just h  -> ((normal h) +: 1) *: 0.5
     Nothing -> backgroundColor r
   where
-    hr = hit (sphere (vec3 0 0 (-1)) 0.5) r tmin tmax
+    s1 = sphere (vec3   0.25  0 (-1.2)) 0.5
+    s2 = sphere (vec3 (-0.25) 0 (-1)) 0.5
+    scene = hitableList [s1,s2]
+    hr = hit scene r tmin tmax
 
 -- Blend between two colors with the y component of the given ray
 backgroundColor :: Ray -> Vec3

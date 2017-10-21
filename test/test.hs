@@ -1,5 +1,6 @@
 import Vec3
 import Ray
+import Model
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
@@ -69,7 +70,32 @@ suite = testGroup "Test Suite" [
         testCase "Vec3 dot"    $ dot (vec3 1 0 0) (vec3 0 1 0) @=? 0,
         testCase "Vec3 cross"  $ cross (vec3 1 2 3) (vec3 4 5 6) @=? (vec3 (-3) 6 (-3)),
         -- Ray
-        testCase "Ray pointAtParameter" $ pointAtParameter (Ray (vec3 1 1 1) (vec3 1 2 3)) 2 @=? (vec3 3 5 7)
+        testCase "Ray pointAtParameter" $ pointAtParameter (Ray (vec3 1 1 1) (vec3 1 2 3)) 2 @=? (vec3 3 5 7),
+        -- Hitables
+        -- Sphere
+        testCase "Hitable Sphere" $
+          hit (sphere (vec3 0 0 0) 1) (rayFromTo (vec3 0 0 (-2)) (vec3 0 0 (-1))) 0.0001 1000 @=?
+          Just (HitRecord 1 (vec3 0 0 (-1)) (vec3 0 0 (-1))),
+        testCase "Hitable Sphere 2" $
+          hit (sphere (vec3 0 0 0) 1) (rayFromTo (vec3 0 0 (-1)) (vec3 1 0 0)) 0.0001 1000 @=?
+          Just (HitRecord 1 (vec3 1 0 0) (vec3 1 0 0)),
+        -- Hitable List
+        testCase "Hitable List" $
+          let
+            s1 = sphere (vec3 0 0 5) 1
+            s2 = sphere (vec3 0 0 0) 1
+            hl = hitableList [s1,s2]
+            ray = rayFromTo (vec3 0 0 (-2)) (vec3 0 0 (-1))
+          in
+            hit hl ray 0.0001 1000 @=? Just (HitRecord 1 (vec3 0 0 (-1)) (vec3 0 0 (-1))),
+        testCase "Hitable List With Miss" $
+          let
+            s1 = sphere (vec3 0 0 5) 1
+            s2 = sphere (vec3 10 0 0) 1
+            hl = hitableList [s1,s2]
+            ray = rayFromTo (vec3 0 0 (-2)) (vec3 0 0 (-1))
+          in
+            hit hl ray 0.0001 1000 @=? Just (HitRecord 6 (vec3 0 0 4) (vec3 0 0 (-1)))
       ],
 
     testGroup "QuickCheck tests"
