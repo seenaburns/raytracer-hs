@@ -7,6 +7,8 @@ import Ray (Ray(Ray))
 import Model
 
 import Data.Maybe
+import System.Random
+import Control.Monad
 
 -- Render module takes a scene and produces a buffer of pixels
 -- In the most basic case this iterates over pixels on the image plane and and sends a Ray.
@@ -14,6 +16,7 @@ import Data.Maybe
 -- Global min/max constants for ray bounds
 tmin = 0.00001
 tmax = 1000
+nsamples = 100
 
 data Scene = Scene {
   objects :: Hitable,
@@ -21,23 +24,41 @@ data Scene = Scene {
   imgY    :: Int
 }
 
-render :: Scene -> [Vec3]
+render :: Scene -> IO [Vec3]
 render scene =
-  do
-    j <- (reverse [0..height-1])
-    i <- ([0..width-1])
-    let u = (fromIntegral i) / (fromIntegral width)
-    let v = (fromIntegral j) / (fromIntegral height)
-    let r = Ray origin (lowerleftcorner + (horizontal *: u) + (vertical *: v))
-    return $ color (objects scene) r
+  sequence $ do
+    j <- fmap fromIntegral (reverse [0..(imgY scene)-1])
+    i <- fmap fromIntegral ([0..(imgX scene)-1])
+    return $ antialias nsamples scene i j
+
+sample :: Scene -> Float -> Float -> Vec3
+sample scene i j =
+  color (objects scene) r
   where
-    width = (imgX scene)
-    height = (imgY scene)
     -- Define origin and picture plane from corner, width and height
     lowerleftcorner = vec3 (-2) (-1) (-1)
     horizontal      = vec3 4 0 0
     vertical        = vec3 0 2 0
     origin          = vec3 0 0 0
+    u = i / (fromIntegral (imgX scene))
+    v = j / (fromIntegral (imgY scene))
+    r = Ray origin (lowerleftcorner + (horizontal *: u) + (vertical *: v))
+
+randomFloat :: IO Float
+randomFloat = randomRIO (0.0,1.0)
+
+antialias :: Int -> Scene -> Float -> Float -> IO Vec3
+antialias ns scene i j =
+  fmap (\s -> (foldr (+) (vec3 0 0 0) s) /: (fromIntegral ns)) samples
+  where
+    runSample =
+      do
+        a <- randomFloat
+        b <- randomFloat
+        let ii = i + a
+        let jj = j + b
+        return $ sample scene ii jj
+    samples = replicateM ns runSample
 
 color :: Hitable -> Ray -> Vec3
 color objects r =
