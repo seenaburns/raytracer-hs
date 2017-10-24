@@ -3,12 +3,15 @@ module Util where
 import Vec3
 
 import Control.Monad
+import Control.Monad.State
 import System.Random
 
-randomFloat :: IO Float
-randomFloat = randomRIO (0.0,1.0)
+type RandomState a = State StdGen a
 
-randomVec3 :: IO Vec3
+randomFloat :: RandomState Float
+randomFloat = state $ randomR (0.0,1.0)
+
+randomVec3 :: RandomState Vec3
 randomVec3 =
   do
     x <- randomFloat
@@ -17,7 +20,7 @@ randomVec3 =
     return $ vec3 x y z
 
 -- repeatedly generate vec3 until one with length less than 1
-randomVec3InUnitSphere :: IO Vec3
+randomVec3InUnitSphere :: RandomState Vec3
 randomVec3InUnitSphere =
   do
     v <- randomVec3

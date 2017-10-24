@@ -3,13 +3,17 @@ import Model
 import Render
 import Vec3
 
+import System.Random
+import Control.Monad.State (runState)
+
 nx = 200
 ny = 100
 
 main :: IO ()
 main =
   do
-    buf <- render scene
+    randGen <- getStdGen
+    let buf = fst $ runState (render scene) randGen
     putStr $ IO.bufToPPM nx ny buf
   where
     s1 = sphere (vec3   0.25  0 (-1.2)) 0.5

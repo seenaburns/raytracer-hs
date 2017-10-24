@@ -25,14 +25,14 @@ data Scene = Scene {
   imgY    :: Int
 }
 
-render :: Scene -> IO [Vec3]
+render :: Scene -> RandomState [Vec3]
 render scene =
   sequence $ do
-    j <- fmap fromIntegral (reverse [0..(imgY scene)-1])
-    i <- fmap fromIntegral ([0..(imgX scene)-1])
-    return $ fmap postProcess $ antialias nsamples scene i j
+    j <- reverse [0..(imgY scene)-1]
+    i <- [0..(imgX scene)-1]
+    return $ fmap postProcess $ antialias nsamples scene (fromIntegral i) (fromIntegral j)
 
-sample :: Scene -> Float -> Float -> IO Vec3
+sample :: Scene -> Float -> Float -> RandomState Vec3
 sample scene i j =
   color (objects scene) r
   where
@@ -45,7 +45,7 @@ sample scene i j =
     v = j / (fromIntegral (imgY scene))
     r = Ray origin (lowerleftcorner + (horizontal *: u) + (vertical *: v))
 
-antialias :: Int -> Scene -> Float -> Float -> IO Vec3
+antialias :: Int -> Scene -> Float -> Float -> RandomState Vec3
 antialias ns scene i j =
   fmap (\s -> (foldr (+) (vec3 0 0 0) s) /: (fromIntegral ns)) samples
   where
@@ -58,7 +58,7 @@ antialias ns scene i j =
         sample scene ii jj
     samples = replicateM ns runSample
 
-color :: Hitable -> Ray -> IO Vec3
+color :: Hitable -> Ray -> RandomState Vec3
 color objects r =
   case hr of
     Just h ->
