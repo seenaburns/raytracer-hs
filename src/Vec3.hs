@@ -9,6 +9,7 @@ module Vec3 where
 
 import Data.Functor
 import Control.Applicative
+import System.Random
 
 data Vec3Generic a = Vec3Generic {
   x :: !a,

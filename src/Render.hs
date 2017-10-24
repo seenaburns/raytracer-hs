@@ -5,6 +5,7 @@ import Vec3 (Vec3)
 import Ray
 import Ray (Ray(Ray))
 import Model
+import Util
 
 import Data.Maybe
 import System.Random
@@ -29,9 +30,9 @@ render scene =
   sequence $ do
     j <- fmap fromIntegral (reverse [0..(imgY scene)-1])
     i <- fmap fromIntegral ([0..(imgX scene)-1])
-    return $ antialias nsamples scene i j
+    return $ fmap postProcess $ antialias nsamples scene i j
 
-sample :: Scene -> Float -> Float -> Vec3
+sample :: Scene -> Float -> Float -> IO Vec3
 sample scene i j =
   color (objects scene) r
   where
@@ -44,9 +45,6 @@ sample scene i j =
     v = j / (fromIntegral (imgY scene))
     r = Ray origin (lowerleftcorner + (horizontal *: u) + (vertical *: v))
 
-randomFloat :: IO Float
-randomFloat = randomRIO (0.0,1.0)
-
 antialias :: Int -> Scene -> Float -> Float -> IO Vec3
 antialias ns scene i j =
   fmap (\s -> (foldr (+) (vec3 0 0 0) s) /: (fromIntegral ns)) samples
@@ -57,14 +55,20 @@ antialias ns scene i j =
         b <- randomFloat
         let ii = i + a
         let jj = j + b
-        return $ sample scene ii jj
+        sample scene ii jj
     samples = replicateM ns runSample
 
-color :: Hitable -> Ray -> Vec3
+color :: Hitable -> Ray -> IO Vec3
 color objects r =
   case hr of
-    Just h  -> ((normal h) +: 1) *: 0.5
-    Nothing -> backgroundColor r
+    Just h ->
+      do
+        randVec <- randomVec3InUnitSphere
+        let p = (position h)
+        let target = p + (normal h) + randVec
+        let newRay = Ray p (target - p)
+        fmap (*: 0.5) (color objects newRay)
+    Nothing -> pure $ backgroundColor r
   where
     hr = hit objects r tmin tmax
 
@@ -75,3 +79,7 @@ backgroundColor r =
   where
     unitDir = (normalized (dir r))
     t = 0.5 * ((y unitDir) + 1.0)
+
+-- Apply rough gamma correction of gamma 2
+postProcess :: Vec3 -> Vec3
+postProcess v = fmap (sqrt) v
