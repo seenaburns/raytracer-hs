@@ -20,7 +20,7 @@ import Control.Monad
 -- Global min/max constants for ray bounds
 tmin = 0.00001
 tmax = 1000
-nsamples = 25
+nsamples = 100
 maxBounce = 20
 nullColor = (vec3 0 0 0)
 
