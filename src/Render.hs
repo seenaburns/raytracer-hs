@@ -1,5 +1,6 @@
 module Render where
 
+import Camera (Camera, getRay)
 import Vec3
 import Vec3 (Vec3)
 import Ray
@@ -25,6 +26,7 @@ nullColor = (vec3 0 0 0)
 
 data Scene = Scene {
   objects :: Renderable,
+  camera  :: Camera,
   imgX    :: Int,
   imgY    :: Int
 }
@@ -41,13 +43,14 @@ sample scene i j =
   color (objects scene) r 0
   where
     -- Define origin and picture plane from corner, width and height
-    lowerleftcorner = vec3 (-2) (-1) (-1)
-    horizontal      = vec3 4 0 0
-    vertical        = vec3 0 2 0
-    origin          = vec3 0 0 0
+    -- lowerleftcorner = vec3 (-2) (-1) (-1)
+    -- horizontal      = vec3 4 0 0
+    -- vertical        = vec3 0 2 0
+    -- origin          = vec3 0 0 0
     u = i / (fromIntegral (imgX scene))
     v = j / (fromIntegral (imgY scene))
-    r = Ray origin (lowerleftcorner + (horizontal *: u) + (vertical *: v))
+    -- r = Ray origin (lowerleftcorner + (horizontal *: u) + (vertical *: v))
+    r = getRay (camera scene) u v
 
 antialias :: Int -> Scene -> Float -> Float -> RandomState Vec3
 antialias ns scene i j =
