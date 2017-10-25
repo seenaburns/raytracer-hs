@@ -60,6 +60,9 @@ normalized v = let len = Vec3.length v
 lerp :: (Fractional a) => Vec3Generic a -> Vec3Generic a -> a -> Vec3Generic a
 lerp v1 v2 t = (v1 *: t) + (v2 *: (1.0-t))
 
+reflect :: (Num a) => Vec3Generic a -> Vec3Generic a -> Vec3Generic a
+reflect v n = v - (n *: (dot v n) *: 2)
+
 -- Vec and Vec Math
 instance (Num a) => Num (Vec3Generic a) where
   negate = fmap negate

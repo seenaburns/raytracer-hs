@@ -22,3 +22,12 @@ lambertian albedo ray hr =
     let scatter = rayFromTo (position hr) target
     let attenuation = albedo
     return $ Just (MaterialResponse attenuation scatter)
+
+metal :: Vec3 -> Float -> Material
+metal albedo fuzz ray hr =
+  do
+    v <- randomVec3InUnitSphere
+    let reflected = reflect (normalized (dir ray)) (normal hr)
+    let scatter = Ray (position hr) (reflected + (v *: fuzz))
+    let attenuation = albedo
+    return $ Just (MaterialResponse attenuation scatter)
