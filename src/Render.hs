@@ -4,7 +4,9 @@ import Vec3
 import Vec3 (Vec3)
 import Ray
 import Ray (Ray(Ray))
+import Renderable
 import Model
+import Material
 import Util
 
 import Data.Maybe
@@ -18,9 +20,11 @@ import Control.Monad
 tmin = 0.00001
 tmax = 1000
 nsamples = 100
+maxBounce = 20
+nullColor = (vec3 0 0 0)
 
 data Scene = Scene {
-  objects :: Hitable,
+  objects :: Renderable,
   imgX    :: Int,
   imgY    :: Int
 }
@@ -34,7 +38,7 @@ render scene =
 
 sample :: Scene -> Float -> Float -> RandomState Vec3
 sample scene i j =
-  color (objects scene) r
+  color (objects scene) r 0
   where
     -- Define origin and picture plane from corner, width and height
     lowerleftcorner = vec3 (-2) (-1) (-1)
@@ -58,16 +62,21 @@ antialias ns scene i j =
         sample scene ii jj
     samples = replicateM ns runSample
 
-color :: Hitable -> Ray -> RandomState Vec3
-color objects r =
+color :: Renderable -> Ray -> Int -> RandomState Vec3
+color objects r depth =
   case hr of
-    Just h ->
-      do
-        randVec <- randomVec3InUnitSphere
-        let p = (position h)
-        let target = p + (normal h) + randVec
-        let newRay = Ray p (target - p)
-        fmap (*: 0.5) (color objects newRay)
+    Just (RenderableHit (h,m)) ->
+      if (depth < maxBounce)
+        then
+          -- get material response for hit/ray
+          -- then recurse, attenuating based on material response
+          do
+            m' <- (m r h)
+            case m' of
+              Just m'' -> fmap (* (attenuation m'')) (color objects (scatterRay m'') (depth+1))
+              Nothing -> pure $ nullColor
+        else
+          pure $ nullColor
     Nothing -> pure $ backgroundColor r
   where
     hr = hit objects r tmin tmax
